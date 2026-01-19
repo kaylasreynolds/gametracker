@@ -197,6 +197,54 @@
         gap: 8px;
       }
 
+      .game-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .game-header h1 {
+        flex: 1;
+        text-align: center;
+      }
+
+      .icon-button,
+      .ghost-button {
+        border: 1px solid var(--muted-strong);
+        background: var(--card);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+      }
+
+      .icon-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 1.2rem;
+      }
+
+      .icon-button:hover,
+      .ghost-button:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      .icon-button:focus-visible,
+      .ghost-button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.35);
+        outline-offset: 2px;
+      }
+
       h1,
       h2,
       h3 {
@@ -211,6 +259,11 @@
       header p {
         color: var(--muted);
         font-size: 1rem;
+      }
+
+      .muted-text {
+        color: var(--muted);
+        line-height: 1.6;
       }
 
       .card {
@@ -482,6 +535,11 @@
         const [highestWins, setHighestWins] = useState(true);
         const [menuOpen, setMenuOpen] = useState(false);
         const [darkMode, setDarkMode] = useState(false);
+        const [currentGame, setCurrentGame] = useState("");
+
+        const handleStart = () => {
+          console.log({ gameName, highestWins });
+          setCurrentGame(gameName.trim());
 
         const handleStart = () => {
           console.log({ gameName, highestWins });
@@ -490,6 +548,28 @@
         React.useEffect(() => {
           document.body.classList.toggle("dark", darkMode);
         }, [darkMode]);
+
+        if (currentGame) {
+          return (
+            <div className="page">
+              <div className="game-header">
+                <button className="icon-button" type="button" onClick={() => setCurrentGame("")}>
+                  ←
+                </button>
+                <h1>{currentGame}</h1>
+                <button className="ghost-button" type="button" onClick={() => setCurrentGame("")}>
+                  End Game
+                </button>
+              </div>
+              <Card>
+                <h2 className="card-title">Game in progress</h2>
+                <p className="muted-text">
+                  Track scores and rounds here next. For now, head back to the Games list.
+                </p>
+              </Card>
+            </div>
+          );
+        }
 
         return (
           <div className="page">
