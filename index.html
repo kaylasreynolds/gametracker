@@ -209,6 +209,18 @@
         text-align: center;
       }
 
+      .game-screen {
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .add-players {
+        align-self: flex-end;
+        margin-top: auto;
+      }
+
       .icon-button,
       .ghost-button {
         border: 1px solid var(--muted-strong);
@@ -245,6 +257,28 @@
         outline-offset: 2px;
       }
 
+      .accent-button {
+        border: none;
+        background: var(--accent);
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .accent-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 20px rgba(167, 139, 250, 0.3);
+      }
+
+      .accent-button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.45);
+        outline-offset: 2px;
+      }
+
       h1,
       h2,
       h3 {
@@ -259,11 +293,6 @@
       header p {
         color: var(--muted);
         font-size: 1rem;
-      }
-
-      .muted-text {
-        color: var(--muted);
-        line-height: 1.6;
       }
 
       .card {
@@ -548,7 +577,7 @@
 
         if (currentGame) {
           return (
-            <div className="page">
+            <div className="page game-screen">
               <div className="game-header">
                 <button className="icon-button" type="button" onClick={() => setCurrentGame("")}>
                   ←
@@ -558,12 +587,9 @@
                   End Game
                 </button>
               </div>
-              <Card>
-                <h2 className="card-title">Game in progress</h2>
-                <p className="muted-text">
-                  Track scores and rounds here next. For now, head back to the Games list.
-                </p>
-              </Card>
+              <button className="accent-button add-players" type="button">
+                Add Players
+              </button>
             </div>
           );
         }
