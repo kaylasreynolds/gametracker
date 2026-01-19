@@ -29,17 +29,6 @@
         padding: 0;
       }
 
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        border: 0;
-      }
-
       body {
         font-family: "Inter", system-ui, -apple-system, sans-serif;
         background: var(--bg);
@@ -59,89 +48,6 @@
         display: flex;
         flex-direction: column;
         gap: 28px;
-        position: relative;
-      }
-
-      .menu {
-        position: absolute;
-        top: 0;
-        left: 0;
-        display: inline-flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-
-      .menu-button {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        border: 1px solid #e5e1dc;
-        background: var(--card);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: var(--shadow);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
-      }
-
-      .menu-button:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-hover);
-      }
-
-      .menu-button:focus-visible {
-        outline: 3px solid rgba(167, 139, 250, 0.35);
-        outline-offset: 2px;
-      }
-
-      .menu-icon {
-        width: 20px;
-        height: 14px;
-        display: inline-flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-
-      .menu-icon span {
-        height: 2px;
-        border-radius: 999px;
-        background: var(--text);
-      }
-
-      .menu-panel {
-        min-width: 180px;
-        background: var(--card);
-        border-radius: 16px;
-        padding: 8px;
-        box-shadow: var(--shadow-hover);
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .menu-item {
-        border: none;
-        background: transparent;
-        text-align: left;
-        padding: 10px 12px;
-        border-radius: 12px;
-        font-size: 0.95rem;
-        font-weight: 500;
-        cursor: pointer;
-        color: var(--text);
-        transition: background 0.2s ease, color 0.2s ease;
-      }
-
-      .menu-item:hover {
-        background: rgba(167, 139, 250, 0.18);
-        color: var(--accent-strong);
-      }
-
-      .menu-item:focus-visible {
-        outline: 3px solid rgba(167, 139, 250, 0.35);
-        outline-offset: 2px;
       }
 
       header {
@@ -179,7 +85,6 @@
 
       .card-title {
         font-size: 1.25rem;
-        text-align: center;
       }
 
       label {
@@ -287,7 +192,14 @@
       }
 
       .section-header {
-        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .section-header p {
+        color: var(--muted);
+        font-size: 0.9rem;
       }
 
       .game-list {
@@ -426,7 +338,6 @@
       const HomePage = () => {
         const [gameName, setGameName] = useState("");
         const [highestWins, setHighestWins] = useState(true);
-        const [menuOpen, setMenuOpen] = useState(false);
 
         const handleStart = () => {
           console.log({ gameName, highestWins });
@@ -434,33 +345,6 @@
 
         return (
           <div className="page">
-            <div className="menu">
-              <button
-                className="menu-button"
-                type="button"
-                aria-haspopup="true"
-                aria-expanded={menuOpen}
-                aria-controls="menu-panel"
-                onClick={() => setMenuOpen((value) => !value)}
-              >
-                <span className="menu-icon" aria-hidden="true">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </span>
-                <span className="sr-only">Open menu</span>
-              </button>
-              {menuOpen && (
-                <div className="menu-panel" id="menu-panel" role="menu">
-                  <button className="menu-item" type="button" role="menuitem">
-                    Manage Players
-                  </button>
-                  <button className="menu-item" type="button" role="menuitem">
-                    Reset
-                  </button>
-                </div>
-              )}
-            </div>
             <header>
               <h1>Games</h1>
               <p>Track your board &amp; card games</p>
@@ -494,6 +378,7 @@
             <section>
               <div className="section-header">
                 <h2>Previous Games</h2>
+                <p>Pick up where you left off</p>
               </div>
               <div className="game-list">
                 {previousGames.map((game) => (
