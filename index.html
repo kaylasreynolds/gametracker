@@ -1,1 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Tracker - Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #faf8f5;
+        --card: #ffffff;
+        --text: #2a2a2a;
+        --muted: #7a7a7a;
+        --muted-strong: #b0b0b0;
+        --accent: #a78bfa;
+        --accent-strong: #8b5cf6;
+        --shadow: 0 10px 30px rgba(42, 42, 42, 0.08);
+        --shadow-hover: 0 14px 40px rgba(42, 42, 42, 0.12);
+      }
 
+      body.dark {
+        color-scheme: dark;
+        --bg: #1f1c1a;
+        --card: #2b2623;
+        --text: #f3f1ee;
+        --muted: #c1bab2;
+        --muted-strong: #90857c;
+        --accent: #a78bfa;
+        --accent-strong: #c4b5fd;
+        --shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+        --shadow-hover: 0 18px 36px rgba(0, 0, 0, 0.4);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      body {
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      #root {
+        display: flex;
+        justify-content: center;
+        padding: 48px 20px 80px;
+      }
+
+      .page {
+        width: 100%;
+        max-width: 520px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        position: relative;
+      }
+
+      .menu {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .menu-button {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        border: 1px solid var(--muted-strong);
+        background: var(--card);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+      }
+
+      .menu-button:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .menu-button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.35);
+        outline-offset: 2px;
+      }
+
+      .menu-icon {
+        width: 20px;
+        height: 14px;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .menu-icon span {
+        height: 2px;
+        border-radius: 999px;
+        background: var(--text);
+      }
+
+      .menu-panel {
+        min-width: 180px;
+        background: var(--card);
+        border-radius: 16px;
+        padding: 8px;
+        box-shadow: var(--shadow-hover);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .menu-item {
+        border: none;
+        background: transparent;
+        text-align: left;
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        color: var(--text);
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .menu-item:hover {
+        background: rgba(167, 139, 250, 0.18);
+        color: var(--accent-strong);
+      }
+
+      .menu-item:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.35);
+        outline-offset: 2px;
+      }
+
+      .menu-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        color: var(--text);
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+
+      .menu-row span {
+        color: var(--text);
+      }
+
+      .menu-row .switch {
+        width: 46px;
+        height: 26px;
+      }
+
+      .menu-row .switch-knob {
+        width: 20px;
+        height: 20px;
+        top: 3px;
+        left: 3px;
+      }
+
+      .menu-row .switch[data-active="true"] .switch-knob {
+        transform: translateX(20px);
+      }
+
+      header {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Poppins", system-ui, -apple-system, sans-serif;
+        font-weight: 600;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 3vw, 2.5rem);
+      }
+
+      header p {
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+        text-align: center;
+      }
+
+      label {
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+
+      .input {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--muted-strong);
+        padding: 12px 14px;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+        background: var(--card);
+        color: var(--text);
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25);
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .toggle-row span {
+        font-size: 0.95rem;
+      }
+
+      .switch {
+        position: relative;
+        width: 56px;
+        height: 32px;
+        background: var(--muted-strong);
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .switch:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.4);
+        outline-offset: 2px;
+      }
+
+      .switch[data-active="true"] {
+        background: rgba(167, 139, 250, 0.4);
+      }
+
+      .switch-knob {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 24px;
+        height: 24px;
+        background: var(--card);
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(42, 42, 42, 0.15);
+        transition: transform 0.2s ease;
+      }
+
+      .switch[data-active="true"] .switch-knob {
+        transform: translateX(24px);
+      }
+
+      .button {
+        width: 100%;
+        border-radius: 999px;
+        border: none;
+        padding: 14px 18px;
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: var(--accent);
+        color: #ffffff;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+      }
+
+      .button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 20px rgba(167, 139, 250, 0.3);
+      }
+
+      .button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.45);
+        outline-offset: 2px;
+      }
+
+      .button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .section-header {
+        text-align: center;
+      }
+
+      .game-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .game-card {
+        background: var(--card);
+        border-radius: 18px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .game-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .game-card:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.35);
+        outline-offset: 2px;
+      }
+
+      .game-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .game-card-top span {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .game-card-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .pill-button {
+        border: 1px solid var(--muted-strong);
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(250, 247, 242, 0.6);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        color: var(--text);
+        transition: border 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .pill-button:hover {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+        box-shadow: 0 6px 12px rgba(42, 42, 42, 0.08);
+      }
+
+      .pill-button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.35);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 480px) {
+        #root {
+          padding: 36px 16px 60px;
+        }
+
+        .card,
+        .game-card {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+      const { useState } = React;
+
+      const Button = ({ children, disabled, onClick }) => (
+        <button className="button" disabled={disabled} onClick={onClick} type="button">
+          {children}
+        </button>
+      );
+
+      const Switch = ({ checked, onToggle, label }) => (
+        <button
+          className="switch"
+          type="button"
+          role="switch"
+          aria-checked={checked}
+          aria-label={label}
+          data-active={checked}
+          onClick={onToggle}
+        >
+          <span className="switch-knob" aria-hidden="true"></span>
+        </button>
+      );
+
+      const Card = ({ children, className = "" }) => (
+        <div className={`card ${className}`.trim()}>{children}</div>
+      );
+
+      const previousGames = [
+        {
+          id: 1,
+          name: "Catan",
+          players: "4 Players",
+        },
+        {
+          id: 2,
+          name: "Poker Night",
+          players: "5 Players",
+        },
+        {
+          id: 3,
+          name: "Sushi Go",
+          players: "3 Players",
+        },
+      ];
+
+      const HomePage = () => {
+        const [gameName, setGameName] = useState("");
+        const [highestWins, setHighestWins] = useState(true);
+        const [menuOpen, setMenuOpen] = useState(false);
+        const [darkMode, setDarkMode] = useState(false);
+
+        const handleStart = () => {
+          console.log({ gameName, highestWins });
+        };
+
+        React.useEffect(() => {
+          document.body.classList.toggle("dark", darkMode);
+        }, [darkMode]);
+
+        return (
+          <div className="page">
+            <div className="menu">
+              <button
+                className="menu-button"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded={menuOpen}
+                aria-controls="menu-panel"
+                onClick={() => setMenuOpen((value) => !value)}
+              >
+                <span className="menu-icon" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <span className="sr-only">Open menu</span>
+              </button>
+              {menuOpen && (
+                <div className="menu-panel" id="menu-panel" role="menu">
+                  <div className="menu-row" role="none">
+                    <span>Dark mode</span>
+                    <Switch
+                      checked={darkMode}
+                      onToggle={() => setDarkMode((value) => !value)}
+                      label="Toggle dark mode"
+                    />
+                  </div>
+                  <button className="menu-item" type="button" role="menuitem">
+                    Manage Players
+                  </button>
+                  <button className="menu-item" type="button" role="menuitem">
+                    Reset
+                  </button>
+                </div>
+              )}
+            </div>
+            <header>
+              <h1>Games</h1>
+              <p>Track your board &amp; card games</p>
+            </header>
+
+            <Card>
+              <h2 className="card-title">Start a New Game!</h2>
+              <div className="input">
+                <label htmlFor="gameName">Game Name</label>
+                <input
+                  id="gameName"
+                  type="text"
+                  placeholder="e.g., Catan Night"
+                  value={gameName}
+                  onChange={(event) => setGameName(event.target.value)}
+                />
+              </div>
+              <div className="toggle-row">
+                <span>Highest score wins 🏆</span>
+                <Switch
+                  checked={highestWins}
+                  onToggle={() => setHighestWins((value) => !value)}
+                  label="Highest score wins"
+                />
+              </div>
+              <Button disabled={!gameName.trim()} onClick={handleStart}>
+                Start New Game
+              </Button>
+            </Card>
+
+            <section>
+              <div className="section-header">
+                <h2>Previous Games</h2>
+              </div>
+              <div className="game-list">
+                {previousGames.map((game) => (
+                  <a href="#" className="game-card" key={game.id}>
+                    <div className="game-card-top">
+                      <h3>{game.name}</h3>
+                      <span>{game.players}</span>
+                    </div>
+                    <div className="game-card-actions">
+                      <button className="pill-button" type="button">
+                        Play Again
+                      </button>
+                      <button className="pill-button" type="button">
+                        View
+                      </button>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<HomePage />);
+    </script>
+  </body>
+</html>
