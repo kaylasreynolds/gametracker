@@ -397,6 +397,12 @@
         transition: border 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
       }
 
+      body.dark .pill-button {
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--text);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
       .pill-button:hover {
         border-color: var(--accent);
         color: var(--accent-strong);
@@ -583,4 +589,5 @@
       root.render(<HomePage />);
     </script>
   </body>
+</html>
 </html>
