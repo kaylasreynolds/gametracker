@@ -941,8 +941,6 @@
         };
 
         const deletePlayerFromGame = (id) => {
-          const ok = window.confirm("Delete this player from the game?");
-          if (!ok) return;
           setPlayers((prev) => prev.filter((p) => p.id !== id));
         };
 
