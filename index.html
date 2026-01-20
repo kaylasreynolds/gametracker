@@ -831,6 +831,13 @@ const endGame = () => {
     setCurrentGame("");
     return;
   }
+  const deletePreviousGame = (id) => {
+  const confirmed = window.confirm("Delete this game? This cannot be undone.");
+  if (!confirmed) return;
+
+  setPreviousGames((prev) => prev.filter((g) => g.id !== id));
+};
+
 
   const playerCount = players.length;
   const summary = `${playerCount} Player${playerCount === 1 ? "" : "s"}`;
@@ -1234,13 +1241,27 @@ if (mode === "addPlayer") {
             <span>{game.players}</span>
           </div>
           <div className="game-card-actions">
-            <button className="pill-button" type="button">
-              Play Again
-            </button>
-            <button className="pill-button" type="button">
-              View
-            </button>
-          </div>
+  <button className="pill-button" type="button">
+    Play Again
+  </button>
+
+  <button className="pill-button" type="button">
+    View
+  </button>
+
+  <button
+    className="pill-button"
+    type="button"
+    onClick={(e) => {
+      e.preventDefault(); // prevent card click
+      deletePreviousGame(game.id);
+    }}
+    aria-label={`Delete ${game.name}`}
+  >
+    Delete
+  </button>
+</div>
+
         </a>
       ))}
     </div>
