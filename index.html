@@ -774,6 +774,83 @@
         color: var(--text);
         flex: 0 0 auto;
       }
+
+      /* Points keypad */
+      .points-shell {
+        background: var(--card);
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .points-label {
+        font-weight: 700;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .points-display {
+        border: 1px solid var(--muted-strong);
+        border-radius: 18px;
+        padding: 16px 16px;
+        font-family: "Poppins", system-ui, -apple-system, sans-serif;
+        font-size: 2.1rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-align: right;
+        background: rgba(250, 247, 242, 0.6);
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      body.dark .points-display {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+
+      .keygrid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .key {
+        height: 62px;
+        border-radius: 18px;
+        border: 1px solid var(--muted-strong);
+        background: var(--card);
+        color: var(--text);
+        font-size: 1.25rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: transform 0.12s ease, box-shadow 0.2s ease, border 0.2s ease;
+      }
+
+      .key:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .key:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.35);
+        outline-offset: 2px;
+      }
+
+      .key.secondary {
+        font-weight: 900;
+      }
+
+      .key.accent {
+        border: none;
+        background: rgba(167, 139, 250, 0.22);
+        color: var(--accent-strong);
+      }
     </style>
   </head>
   <body>
@@ -837,6 +914,8 @@
         const [mode, setMode] = useState("game");
         const [addMode, setAddMode] = useState("saved");
         const [editingPlayerId, setEditingPlayerId] = useState(null);
+        const [pointsPlayerId, setPointsPlayerId] = useState(null);
+        const [pointsValue, setPointsValue] = useState("");
 
         const [savedPlayers] = useState([
           { id: "s1", name: "Kayla", color: "#d55a6d" },
@@ -868,6 +947,55 @@
             .slice(0, 2)
             .map((s) => s[0]?.toUpperCase() ?? "")
             .join("");
+
+        const openPoints = (playerId) => {
+          setPointsPlayerId(playerId);
+          setPointsValue("");
+          setMode("points");
+        };
+
+        const appendDigit = (digit) => {
+          setPointsValue((prev) => {
+            const raw = prev || "";
+            const sign = raw.startsWith("-") ? "-" : "";
+            const core = sign ? raw.slice(1) : raw;
+
+            const nextCore = core === "0" ? String(digit) : core + String(digit);
+            return sign + nextCore;
+          });
+        };
+
+        const toggleMinus = () => {
+          setPointsValue((prev) => {
+            if (!prev) return "-";
+            return prev.startsWith("-") ? prev.slice(1) : "-" + prev;
+          });
+        };
+
+        const backspacePoints = () => {
+          setPointsValue((prev) => {
+            if (!prev) return "";
+            const next = prev.slice(0, -1);
+            return next === "-" ? "" : next;
+          });
+        };
+
+        const commitPoints = () => {
+          const parsed = parseInt(pointsValue || "0", 10);
+          if (!Number.isFinite(parsed) || parsed === 0) {
+            setMode("game");
+            setPointsPlayerId(null);
+            setPointsValue("");
+            return;
+          }
+
+          setPlayers((prev) =>
+            prev.map((p) => (p.id === pointsPlayerId ? { ...p, score: (p.score ?? 0) + parsed } : p))
+          );
+          setMode("game");
+          setPointsPlayerId(null);
+          setPointsValue("");
+        };
 
         const handleStart = () => {
           const name = gameName.trim();
@@ -950,6 +1078,77 @@
             if (sortMode === "low") return a.score - b.score;
             return 0;
           });
+
+          if (mode === "points") {
+            const target = players.find((p) => p.id === pointsPlayerId);
+            return (
+              <div className="page game-screen">
+                <div className="game-header">
+                  <button
+                    className="icon-button"
+                    type="button"
+                    onClick={() => {
+                      setMode("game");
+                      setPointsPlayerId(null);
+                      setPointsValue("");
+                    }}
+                    aria-label="Back"
+                  >
+                    ←
+                  </button>
+                  <h1>Points</h1>
+                  <button className="ghost-button" type="button" onClick={commitPoints}>
+                    Done
+                  </button>
+                </div>
+
+                <div className="points-shell">
+                  <div className="points-label">
+                    {target ? `${target.name} • Current: ${target.score ?? 0}` : "Enter points"}
+                  </div>
+                  <div className="points-display" aria-label="Points entry">
+                    {pointsValue || "0"}
+                  </div>
+
+                  <div className="keygrid" role="group" aria-label="Number pad">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        className="key"
+                        onClick={() => appendDigit(n)}
+                        aria-label={`Enter ${n}`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+
+                    <button
+                      type="button"
+                      className="key accent secondary"
+                      onClick={toggleMinus}
+                      aria-label="Toggle negative"
+                    >
+                      −
+                    </button>
+
+                    <button type="button" className="key" onClick={() => appendDigit(0)} aria-label="Enter 0">
+                      0
+                    </button>
+
+                    <button
+                      type="button"
+                      className="key accent secondary"
+                      onClick={backspacePoints}
+                      aria-label="Backspace"
+                    >
+                      ⌫
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
           if (mode === "addPlayer") {
             return (
@@ -1152,7 +1351,7 @@
                       <button
                         className="pill-button"
                         type="button"
-                        onClick={() => alert('Points functionality coming soon!')}
+                        onClick={() => openPoints(p.id)}
                       >
                         Points
                       </button>
