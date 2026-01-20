@@ -415,6 +415,22 @@
         cursor: not-allowed;
         box-shadow: none;
       }
+.row-actions {
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pill-button.danger {
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.35);
+}
+
+.pill-button.danger:hover {
+  background: rgba(185, 28, 28, 0.08);
+  color: #991b1b;
+}
 
       .section-header {
         text-align: center;
@@ -861,10 +877,8 @@ const endGame = () => {
         const [currentGame, setCurrentGame] = useState("");
         const [round, setRound] = useState(1);
         const [sortMode, setSortMode] = useState("custom"); // custom | high | low
-        const [players, setPlayers] = useState([
-          { id: 1, name: "Player 1", color: "#a78bfa", score: 0, order: 1 },
-          { id: 2, name: "Player 2", color: "#8b5cf6", score: 0, order: 2 },
-          ]);
+        const [players, setPlayers] = useState([]);
+
         const [mode, setMode] = useState("game"); // "game" | "addPlayer"
         const [addMode, setAddMode] = useState("saved"); // "saved" | "new"
         
@@ -881,19 +895,16 @@ const endGame = () => {
 
 
 				const handleStart = () => {
- 			 		const name = gameName.trim();
-					if (!name) return;
+  const name = gameName.trim();
+  if (!name) return;
 
-				  setRound(1);
-				  setSortMode("custom");
-				  setPlayers([
-				    { id: 1, name: "Player 1", color: "#a78bfa", score: 0, order: 1 },
-				    { id: 2, name: "Player 2", color: "#8b5cf6", score: 0, order: 2 },
-				  ]);
-				
-				  setMode("game");
-				  setCurrentGame(name);
-				};
+  setRound(1);
+  setSortMode("custom");
+  setPlayers([]); // start with no players
+  setMode("game");
+  setCurrentGame(name);
+};
+
 
         const toInitials = (name) =>
   (name || "P")
@@ -923,15 +934,62 @@ const handleDoneAddPlayer = () => {
   if (addMode === "saved") {
     const chosen = savedPlayers.find((p) => p.id === selectedSavedId);
     if (chosen) addPlayerToGame(chosen);
-  } else {
-    const trimmed = newPlayerName.trim();
-    if (!trimmed) return;
-    addPlayerToGame({ name: trimmed, color: newPlayerColor, image: newPlayerImage });
-    setNewPlayerName("");
-    setNewPlayerImage("");
-    setNewPlayerColor("#a78bfa");
+    setMode("game");
+    return;
   }
+
+  const trimmed = newPlayerName.trim();
+  if (!trimmed) return;
+
+  // If editing, update existing player
+  if (editingPlayerId != null) {
+    setPlayers((prev) =>
+      prev.map((p) =>
+        p.id === editingPlayerId
+          ? { ...p, name: trimmed, color: newPlayerColor, image: newPlayerImage || "" }
+          : p
+      )
+    );
+    setEditingPlayerId(null);
+  } else {
+    // Otherwise add a new player
+    addPlayerToGame({ name: trimmed, color: newPlayerColor, image: newPlayerImage });
+  }
+
+  // reset form
+  setNewPlayerName("");
+  setNewPlayerImage("");
+  setNewPlayerColor("#a78bfa");
+
   setMode("game");
+};
+
+const [editingPlayerId, setEditingPlayerId] = useState(null);
+const [editName, setEditName] = useState("");
+const [editColor, setEditColor] = useState("#a78bfa");
+const [editImage, setEditImage] = useState("");
+const startEditPlayer = (player) => {
+  setAddMode("new");           // reuse the "Create New Player" form as the edit form
+  setMode("addPlayer");
+  setEditingPlayerId(player.id);
+
+  setNewPlayerName(player.name || "");
+  setNewPlayerColor(player.color || "#a78bfa");
+  setNewPlayerImage(player.image || "");
+};
+
+const deletePlayerFromGame = (id) => {
+  const ok = window.confirm("Delete this player from the game?");
+  if (!ok) return;
+  setPlayers((prev) => prev.filter((p) => p.id !== id));
+};
+
+const handleEditImageUpload = (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => setNewPlayerImage(String(reader.result || ""));
+  reader.readAsDataURL(file);
 };
 
 
@@ -1010,7 +1068,7 @@ if (mode === "addPlayer") {
                   )}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-                  <input type="file" accept="image/*" onChange={handleImageUpload} />
+<input type="file" accept="image/*" onChange={handleEditImageUpload} />
                   <span className="small-muted">Optional. Used on the player card.</span>
                 </div>
               </div>
@@ -1056,15 +1114,20 @@ if (mode === "addPlayer") {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {players.map((p, idx) => (
-            <div className="player-row" key={p.id}>
-              <div className="player-left">
-                <div
-                  className="player-chip"
-                  style={{ background: p.color }}
-                  aria-hidden="true"
-                ></div>
-                <div className="player-name">{p.name || `Player ${idx + 1}`}</div>
-              </div>
+  <div className="player-row" key={p.id}>
+    <div className="player-left">
+      <div className="player-chip" style={{ background: p.color }} aria-hidden="true"></div>
+      <div className="player-name">{p.name || `Player ${idx + 1}`}</div>
+    </div>
+
+    <div className="row-actions">
+      <button className="pill-button" type="button" onClick={() => startEditPlayer(p)}>
+        Modify
+      </button>
+      <button className="pill-button danger" type="button" onClick={() => deletePlayerFromGame(p.id)}>
+        Delete
+      </button>
+    </div>
               <div className="score-right">Player {idx + 1}</div>
             </div>
           ))}
@@ -1130,17 +1193,33 @@ if (mode === "addPlayer") {
       </div>
 
       {/* Player rows */}
-      <div className="players-card">
-        {sortedPlayers.map((p) => (
-          <div className="player-row" key={p.id}>
-            <div className="player-left">
-              <div className="player-chip" style={{ background: p.color }} aria-hidden="true"></div>
-              <div className="player-name">{p.name}</div>
-            </div>
-            <div className="score-right">Score: {p.score}</div>
-          </div>
-        ))}
-      </div>
+      <div className="player-row" key={p.id}>
+  <div className="player-left">
+    <div className="player-chip" style={{ background: p.color }} aria-hidden="true"></div>
+    <div className="player-name">{p.name}</div>
+  </div>
+
+  <div className="row-actions">
+    <div className="score-right">Score: {p.score}</div>
+
+    <button
+      className="pill-button"
+      type="button"
+      onClick={() => startEditPlayer(p)}
+    >
+      Modify
+    </button>
+
+    <button
+      className="pill-button danger"
+      type="button"
+      onClick={() => deletePlayerFromGame(p.id)}
+    >
+      Delete
+    </button>
+  </div>
+</div>
+
 <button
   className="accent-button add-players"
   type="button"
