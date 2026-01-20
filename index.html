@@ -845,7 +845,9 @@
           { id: "s4", name: "Brandon", color: "#d77b4a" },
         ]);
 
-        const [selectedSavedId, setSelectedSavedId] = useState(savedPlayers[0]?.id ?? "");
+        const [selectedSavedIds, setSelectedSavedIds] = useState(
+           () => (savedPlayers.length ? [savedPlayers[0].id] : [])
+        );
         const [newPlayerName, setNewPlayerName] = useState("");
         const [newPlayerColor, setNewPlayerColor] = useState("#a78bfa");
 
@@ -913,11 +915,11 @@
 
         const handleDoneAddPlayer = () => {
           if (addMode === "saved") {
-            const chosen = savedPlayers.find((p) => p.id === selectedSavedId);
-            if (chosen) addPlayerToGame(chosen);
-            setMode("game");
-            return;
-          }
+          const chosen = savedPlayers.filter((p) => selectedSavedIds.includes(p.id));
+          chosen.forEach((p) => addPlayerToGame(p));
+          setMode("game");
+          return;
+        }
 
           const trimmed = newPlayerName.trim();
           if (!trimmed) return;
@@ -989,8 +991,11 @@
                         <select
                           id="savedPlayer"
                           className="saved-select"
-                          value={selectedSavedId}
-                          onChange={(e) => setSelectedSavedId(e.target.value)}
+                          multiple
+                          value={selectedSavedIds}
+                          onChange={(e) =>
+                            setSelectedSavedIds(Array.from(e.target.selectedOptions, (o) => o.value))
+                          }
                         >
                           {savedPlayers.map((p) => (
                             <option value={p.id} key={p.id}>
