@@ -505,42 +505,49 @@
         .game-card {
           padding: 20px;
         }
-        /* --- Add Player screen --- */
+/* --- Themed segmented control (matches app buttons) --- */
 .segmented {
   display: flex;
   gap: 10px;
-  padding: 6px;
-  border-radius: 999px;
-  border: 1px solid var(--muted-strong);
-  background: rgba(250, 247, 242, 0.6);
-  box-shadow: var(--shadow);
-}
-
-body.dark .segmented {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .segmented button {
   flex: 1;
-  border: none;
-  background: transparent;
-  padding: 10px 12px;
   border-radius: 999px;
+  border: 1px solid var(--muted-strong);
+  background: var(--card);
+  color: var(--text);
+  padding: 12px 16px;
+  font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  color: var(--text);
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.segmented button[data-active="true"] {
-  background: rgba(167, 139, 250, 0.22);
-  color: var(--accent-strong);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease, background 0.2s ease;
 }
 
 .segmented button:hover {
   transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
 }
+
+.segmented button:focus-visible {
+  outline: 3px solid rgba(167, 139, 250, 0.35);
+  outline-offset: 2px;
+}
+
+/* Active state */
+.segmented button[data-active="true"] {
+  background: rgba(167, 139, 250, 0.22);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+/* Dark mode tweak */
+body.dark .segmented button {
+  background: var(--card);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 
 .form-grid {
   display: grid;
@@ -908,26 +915,23 @@ if (mode === "addPlayer") {
         </button>
       </div>
 
-      <div className="segmented" role="tablist" aria-label="Add player options">
-        <button
-          type="button"
-          role="tab"
-          data-active={addMode === "saved"}
-          aria-selected={addMode === "saved"}
-          onClick={() => setAddMode("saved")}
-        >
-          Select from Saved Players
-        </button>
-        <button
-          type="button"
-          role="tab"
-          data-active={addMode === "new"}
-          aria-selected={addMode === "new"}
-          onClick={() => setAddMode("new")}
-        >
-          Create New Player
-        </button>
-      </div>
+     <div className="segmented">
+  <button
+    type="button"
+    data-active={addMode === "saved"}
+    onClick={() => setAddMode("saved")}
+  >
+    Select from Saved Players
+  </button>
+  <button
+    type="button"
+    data-active={addMode === "new"}
+    onClick={() => setAddMode("new")}
+  >
+    Create a New Player
+  </button>
+</div>
+
 
       <div className="card">
         {addMode === "saved" ? (
