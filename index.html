@@ -971,15 +971,34 @@
           if (mode === "addPlayer") {
             return (
               <div className="page game-screen">
-                <div className="game-header">
-                  <button className="icon-button" type="button" onClick={() => setMode("game")}>
-                    ←
-                  </button>
-                  <h1>Add Player</h1>
-                  <button className="ghost-button" type="button" onClick={() => setMode("game")}>
-                    Cancel
-                  </button>
-                </div>
+               <div className="game-header">
+  <div style={{ display: "flex", gap: 10 }}>
+    <button
+      className="icon-button"
+      type="button"
+      onClick={() => setCurrentGame("")}
+      aria-label="Back"
+    >
+      ←
+    </button>
+
+    <button
+      className="icon-button"
+      type="button"
+      onClick={() => setMode("addPlayer")}
+      aria-label="Add player"
+    >
+      +
+    </button>
+  </div>
+
+  <h1>{currentGame}</h1>
+
+  <button className="ghost-button" type="button" onClick={endGame}>
+    End Game
+  </button>
+</div>
+
 
                 <div className="segmented">
                   <button
@@ -1190,13 +1209,6 @@
                 ))}
               </div>
 
-              <button
-                className="accent-button add-players"
-                type="button"
-                onClick={() => setMode("addPlayer")}
-              >
-                Add Players
-              </button>
             </div>
           );
         }
