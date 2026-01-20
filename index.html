@@ -580,42 +580,34 @@
         gap: 8px;
       }
 
-      .color-input {
+      .color-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+        gap: 10px;
+      }
+
+      .color-option {
         width: 100%;
-        height: 44px;
+        aspect-ratio: 1;
         border-radius: 14px;
-        border: 1px solid var(--muted-strong);
-        background: var(--card);
-        padding: 6px;
+        border: 3px solid transparent;
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
-      .image-picker {
-        display: flex;
-        align-items: center;
-        gap: 14px;
+      .color-option:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(42, 42, 42, 0.15);
       }
 
-      .avatar {
-        width: 54px;
-        height: 54px;
-        border-radius: 18px;
-        border: 1px solid rgba(122, 122, 122, 0.22);
-        background: rgba(167, 139, 250, 0.12);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        overflow: hidden;
+      .color-option:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.4);
+        outline-offset: 2px;
       }
 
-      body.dark .avatar {
-        border-color: rgba(255, 255, 255, 0.16);
-      }
-
-      .avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+      .color-option[data-selected="true"] {
+        border-color: var(--text);
+        transform: scale(1.05);
       }
 
       .small-muted {
@@ -793,6 +785,13 @@
     <script type="text/babel">
       const { useState } = React;
 
+      const PRESET_COLORS = [
+        "#a78bfa", "#8b5cf6", "#ec4899", "#f43f5e", 
+        "#f97316", "#f59e0b", "#eab308", "#84cc16",
+        "#22c55e", "#10b981", "#14b8a6", "#06b6d4",
+        "#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6"
+      ];
+
       const Button = ({ children, disabled, onClick }) => (
         <button className="button" disabled={disabled} onClick={onClick} type="button">
           {children}
@@ -842,14 +841,13 @@
         const [editingPlayerId, setEditingPlayerId] = useState(null);
 
         const [savedPlayers] = useState([
-          { id: "s1", name: "Kayla", color: "#a78bfa", image: "" },
-          { id: "s2", name: "Jordan", color: "#8b5cf6", image: "" },
+          { id: "s1", name: "Kayla", color: "#a78bfa" },
+          { id: "s2", name: "Jordan", color: "#8b5cf6" },
         ]);
 
         const [selectedSavedId, setSelectedSavedId] = useState(savedPlayers[0]?.id ?? "");
         const [newPlayerName, setNewPlayerName] = useState("");
         const [newPlayerColor, setNewPlayerColor] = useState("#a78bfa");
-        const [newPlayerImage, setNewPlayerImage] = useState("");
 
         React.useEffect(() => {
           try {
@@ -905,19 +903,11 @@
           setPreviousGames((prev) => prev.filter((g) => g.id !== id));
         };
 
-        const handleImageUpload = (event) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = () => setNewPlayerImage(String(reader.result || ""));
-          reader.readAsDataURL(file);
-        };
-
         const addPlayerToGame = (player) => {
           setPlayers((prev) => {
             const nextOrder = prev.length ? Math.max(...prev.map((p) => p.order)) + 1 : 1;
             const nextId = prev.length ? Math.max(...prev.map((p) => p.id)) + 1 : 1;
-            return [...prev, { id: nextId, name: player.name, color: player.color, score: 0, order: nextOrder, image: player.image || "" }];
+            return [...prev, { id: nextId, name: player.name, color: player.color, score: 0, order: nextOrder }];
           });
         };
 
@@ -936,28 +926,18 @@
             setPlayers((prev) =>
               prev.map((p) =>
                 p.id === editingPlayerId
-                  ? { ...p, name: trimmed, color: newPlayerColor, image: newPlayerImage || "" }
+                  ? { ...p, name: trimmed, color: newPlayerColor }
                   : p
               )
             );
             setEditingPlayerId(null);
           } else {
-            addPlayerToGame({ name: trimmed, color: newPlayerColor, image: newPlayerImage });
+            addPlayerToGame({ name: trimmed, color: newPlayerColor });
           }
 
           setNewPlayerName("");
-          setNewPlayerImage("");
           setNewPlayerColor("#a78bfa");
           setMode("game");
-        };
-
-        const startEditPlayer = (player) => {
-          setAddMode("new");
-          setMode("addPlayer");
-          setEditingPlayerId(player.id);
-          setNewPlayerName(player.name || "");
-          setNewPlayerColor(player.color || "#a78bfa");
-          setNewPlayerImage(player.image || "");
         };
 
         const deletePlayerFromGame = (id) => {
@@ -1027,23 +1007,6 @@
                   ) : (
                     <div className="form-grid">
                       <div className="field-row">
-                        <label>Player Card Image</label>
-                        <div className="image-picker">
-                          <div className="avatar" aria-label="Player preview">
-                            {newPlayerImage ? (
-                              <img src={newPlayerImage} alt="Player" />
-                            ) : (
-                              <span>{toInitials(newPlayerName)}</span>
-                            )}
-                          </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-                            <input type="file" accept="image/*" onChange={handleImageUpload} />
-                            <span className="small-muted">Optional. Used on the player card.</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="field-row">
                         <label htmlFor="playerName">Name</label>
                         <input
                           id="playerName"
@@ -1055,15 +1018,20 @@
                       </div>
 
                       <div className="field-row">
-                        <label htmlFor="playerColor">Color</label>
-                        <input
-                          id="playerColor"
-                          className="color-input"
-                          type="color"
-                          value={newPlayerColor}
-                          onChange={(e) => setNewPlayerColor(e.target.value)}
-                          aria-label="Choose player color"
-                        />
+                        <label>Color</label>
+                        <div className="color-grid">
+                          {PRESET_COLORS.map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              className="color-option"
+                              style={{ background: color }}
+                              data-selected={newPlayerColor === color}
+                              onClick={() => setNewPlayerColor(color)}
+                              aria-label={`Select color ${color}`}
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1095,10 +1063,6 @@
 
                         <div className="row-actions">
                           <span className="score-right">Player {idx + 1}</span>
-
-                          <button className="pill-button" type="button" onClick={() => startEditPlayer(p)}>
-                            Modify
-                          </button>
 
                           <button className="pill-button danger" type="button" onClick={() => deletePlayerFromGame(p.id)}>
                             Delete
@@ -1186,23 +1150,15 @@
                       <div className="player-name">{p.name}</div>
                     </div>
 
-                    <div className="row-actions">
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                       <div className="score-right">Score: {p.score}</div>
 
                       <button
                         className="pill-button"
                         type="button"
-                        onClick={() => startEditPlayer(p)}
+                        onClick={() => alert('Points functionality coming soon!')}
                       >
-                        Modify
-                      </button>
-
-                      <button
-                        className="pill-button danger"
-                        type="button"
-                        onClick={() => deletePlayerFromGame(p.id)}
-                      >
-                        Delete
+                        Points
                       </button>
                     </div>
                   </div>
