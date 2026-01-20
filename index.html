@@ -839,8 +839,10 @@
         const [editingPlayerId, setEditingPlayerId] = useState(null);
 
         const [savedPlayers] = useState([
-          { id: "s1", name: "Kayla", color: "#a78bfa" },
-          { id: "s2", name: "Jordan", color: "#8b5cf6" },
+          { id: "s1", name: "Kayla", color: "#d55a6d" },
+          { id: "s2", name: "MiKayla", color: "#6a4e8d" },
+          { id: "s2", name: "Tyrell", color: "#a3c1a0" },
+          { id: "s2", name: "Brandon", color: "#d77b4a" },
         ]);
 
         const [selectedSavedId, setSelectedSavedId] = useState(savedPlayers[0]?.id ?? "");
@@ -1133,7 +1135,6 @@
                     onChange={(e) => setSortMode(e.target.value)}
                     aria-label="Sort players"
                   >
-                    <option value="custom">Custom</option>
                     <option value="high">Highest points</option>
                     <option value="low">Lowest points</option>
                   </select>
