@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #faf8f5;
+        --card: #ffffff;
+        --text: #2a2a2a;
+        --muted: #7a7a7a;
+        --muted-strong: #b0b0b0;
+        --accent: #a78bfa;
+        --accent-strong: #8b5cf6;
+        --danger: #b91c1c;
+        --shadow: 0 10px 30px rgba(42, 42, 42, 0.08);
+        --shadow-hover: 0 14px 40px rgba(42, 42, 42, 0.12);
+      }
+
+      body.dark {
+        color-scheme: dark;
+        --bg: #1f1c1a;
+        --card: #2b2623;
+        --text: #f3f1ee;
+        --muted: #c1bab2;
+        --muted-strong: #90857c;
+        --accent: #a78bfa;
+        --accent-strong: #c4b5fd;
+        --danger: #f87171;
+        --shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+        --shadow-hover: 0 18px 36px rgba(0, 0, 0, 0.4);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      #root {
+        display: flex;
+        justify-content: center;
+        padding: 48px 20px 80px;
+      }
+
+      .page {
+        width: 100%;
+        max-width: 520px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        position: relative;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Poppins", system-ui, -apple-system, sans-serif;
+        font-weight: 600;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 3vw, 2.5rem);
+      }
+
+      header {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      header p {
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+        text-align: center;
+      }
+
+      label {
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+
+      .input {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--muted-strong);
+        padding: 12px 14px;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+        background: var(--card);
+        color: var(--text);
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25);
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .toggle-row span {
+        font-size: 0.95rem;
+      }
+
+      .switch {
+        position: relative;
+        width: 56px;
+        height: 32px;
+        background: var(--muted-strong);
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .switch:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.4);
+        outline-offset: 2px;
+      }
+
+      .switch[data-active="true"] {
+        background: rgba(167, 139, 250, 0.4);
+      }
+
+      .switch-knob {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 24px;
+        height: 24px;
+        background: var(--card);
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(42, 42, 42, 0.15);
+        transition: transform 0.2s ease;
+      }
+
+      .switch[data-active="true"] .switch-knob {
+        transform: translateX(24px);
+      }
+
+      .button {
+        width: 100%;
+        border-radius: 999px;
+        border: none;
+        padding: 14px 18px;
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: var(--accent);
+        color: #ffffff;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        text-align: center;
+      }
+
+      .button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 20px rgba(167, 139, 250, 0.3);
+      }
+
+      .button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.45);
+        outline-offset: 2px;
+      }
+
+      .button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .ghost-button,
+      .icon-button {
+        border: 1px solid var(--muted-strong);
+        background: var(--card);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+      }
+
+      .icon-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 1.2rem;
+      }
+
+      .icon-button:hover,
+      .ghost-button:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      .icon-button:focus-visible,
+      .ghost-button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.35);
+        outline-offset: 2px;
+      }
+
+      .accent-button {
+        border: none;
+        background: var(--accent);
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-size: 0.95rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .accent-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 20px rgba(167, 139, 250, 0.3);
+      }
+
+      .accent-button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.45);
+        outline-offset: 2px;
+      }
+
+      .menu {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .menu-button {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        border: 1px solid var(--muted-strong);
+        background: var(--card);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+      }
+
+      .menu-button:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .menu-button:focus-visible {
+        outline: 3px solid rgba(167, 139, 250, 0.35);
+        outline-offset: 2px;
+      }
+
+      .menu-icon {
+        width: 20px;
+        height: 14px;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .menu-icon span {
+        height: 2px;
+        border-radius: 999px;
+        background: var(--text);
+      }
+
+      .menu-panel {
+        min-width: 180px;
+        background: var(--card);
+        border-radius: 16px;
+        padding: 8px;
+        box-shadow: var(--shadow-hover);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .menu-item {
+        border: none;
+        background: transparent;
+        text-align: left;
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text);
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .menu-item:hover {
+        background: rgba(167, 139, 250, 0.18);
+        color: var(--accent-strong);
+      }
+
+      .menu-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        color: var(--text);
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      .menu-row .switch {
+        width: 46px;
+        height: 26px;
+      }
+
+      .menu-row .switch-knob {
+        width: 20px;
+        height: 20px;
+        top: 3px;
+        left: 3px;
+      }
+
+      .menu-row .switch[data-active="true"] .switch-knob {
+        transform: translateX(20px);
+      }
+
+      .section-header {
+        text-align: center;
+      }
+
+      .game-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .game-card {
+        background: var(--card);
+        border-radius: 18px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .game-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .game-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .game-card-top span {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .game-card-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .pill-button {
+        border: 1px solid var(--muted-strong);
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(250, 247, 242, 0.6);
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text);
+        transition: border 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      body.dark .pill-button {
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--text);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .pill-button:hover {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+        box-shadow: 0 6px 12px rgba(42, 42, 42, 0.08);
+      }
+
+      .pill-button.danger {
+        color: var(--danger);
+        border-color: rgba(185, 28, 28, 0.35);
+      }
+
+      .pill-button.danger:hover {
+        background: rgba(185, 28, 28, 0.08);
+      }
+
+      .game-screen {
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .game-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .game-header h1 {
+        flex: 1;
+        text-align: center;
+      }
+
+      .subheader-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 18px;
+        background: var(--card);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+      }
+
+      .round-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+      }
+
+      .round-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--muted-strong);
+        background: rgba(250, 247, 242, 0.6);
+      }
+
+      body.dark .round-pill {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .round-stepper {
+        display: inline-flex;
+        gap: 8px;
+      }
+
+      .stepper-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        border: 1px solid var(--muted-strong);
+        background: var(--card);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .stepper-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      .sort-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+      }
+
+      .select {
+        border-radius: 14px;
+        border: 1px solid var(--muted-strong);
+        padding: 10px 12px;
+        font-size: 0.95rem;
+        background: var(--card);
+        color: var(--text);
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      .players-card {
+        background: var(--card);
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .player-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 12px 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(122, 122, 122, 0.18);
+      }
+
+      body.dark .player-row {
+        border-color: rgba(255, 255, 255, 0.14);
+      }
+
+      .player-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .player-chip {
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
+        box-shadow: 0 10px 18px rgba(42, 42, 42, 0.12);
+        flex: 0 0 auto;
+      }
+
+      .player-name {
+        font-weight: 800;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .row-actions {
+        display: inline-flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-items: center;
+      }
+
+      .score-right {
+        font-weight: 800;
+        color: var(--text);
+        flex: 0 0 auto;
+      }
+
+      .add-players {
+        align-self: flex-end;
+        margin-top: auto;
+      }
+
+      .segmented {
+        display: flex;
+        gap: 10px;
+      }
+
+      .segmented button {
+        flex: 1;
+        border-radius: 999px;
+        border: 1px solid var(--muted-strong);
+        background: var(--card);
+        color: var(--text);
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease, background 0.2s ease;
+      }
+
+      .segmented button:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .segmented button[data-active="true"] {
+        background: rgba(167, 139, 250, 0.22);
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .color-input {
+        width: 100%;
+        height: 44px;
+        border-radius: 14px;
+        border: 1px solid var(--muted-strong);
+        background: var(--card);
+        padding: 6px;
+      }
+
+      .image-picker {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 18px;
+        border: 1px solid rgba(122, 122, 122, 0.22);
+        background: rgba(167, 139, 250, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        overflow: hidden;
+      }
+
+      body.dark .avatar {
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .small-muted {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .divider {
+        height: 1px;
+        background: rgba(122, 122, 122, 0.18);
+        margin: 6px 0;
+      }
+
+      body.dark .divider {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .saved-select {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--muted-strong);
+        padding: 12px 14px;
+        font-size: 1rem;
+        background: var(--card);
+        color: var(--text);
+        font-family: inherit;
+      }
+
+      @media (max-width: 480px) {
+        #root {
+          padding: 36px 16px 60px;
+        }
+        .card,
+        .game-card {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const { useEffect, useMemo, useState } = React;
+
+      // ---------- storage helpers ----------
+      const storage = {
+        get(key, fallback) {
+          try {
+            const raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : fallback;
+          } catch {
+            return fallback;
+          }
+        },
+        set(key, value) {
+          try {
+            localStorage.setItem(key, JSON.stringify(value));
+          } catch {
+            // ignore
+          }
+        },
+      };
+
+      const uid = () => `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+      const toInitials = (name) =>
+        (name || "P")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((s) => s[0]?.toUpperCase() ?? "")
+          .join("");
+
+      // ---------- UI primitives ----------
+      const Card = ({ children, className = "" }) => <div className={`card ${className}`.trim()}>{children}</div>;
+
+      const Button = ({ children, disabled, onClick }) => (
+        <button className="button" type="button" disabled={disabled} onClick={onClick}>
+          {children}
+        </button>
+      );
+
+      const Switch = ({ checked, onToggle, label }) => (
+        <button
+          className="switch"
+          type="button"
+          role="switch"
+          aria-checked={checked}
+          aria-label={label}
+          data-active={checked}
+          onClick={onToggle}
+        >
+          <span className="switch-knob" aria-hidden="true"></span>
+        </button>
+      );
+
+      const PillButton = ({ children, onClick, danger = false }) => (
+        <button className={`pill-button ${danger ? "danger" : ""}`.trim()} type="button" onClick={onClick}>
+          {children}
+        </button>
+      );
+
+      // ---------- Pages ----------
+      const HomePage = ({
+        gameName,
+        setGameName,
+        highestWins,
+        setHighestWins,
+        previousGames,
+        onStart,
+        onDeletePrev,
+        darkMode,
+        setDarkMode,
+        onReset,
+      }) => {
+        const [menuOpen, setMenuOpen] = useState(false);
+
+        return (
+          <div className="page">
+            <div className="menu">
+              <button
+                className="menu-button"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded={menuOpen}
+                aria-controls="menu-panel"
+                onClick={() => setMenuOpen((v) => !v)}
+              >
+                <span className="menu-icon" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <span className="sr-only">Open menu</span>
+              </button>
+
+              {menuOpen && (
+                <div className="menu-panel" id="menu-panel" role="menu">
+                  <div className="menu-row" role="none">
+                    <span>Dark mode</span>
+                    <Switch checked={darkMode} onToggle={() => setDarkMode((v) => !v)} label="Toggle dark mode" />
+                  </div>
+
+                  <button
+                    className="menu-item"
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onReset();
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <header>
+              <h1>Games</h1>
+              <p>Track your board and card games</p>
+            </header>
+
+            <Card>
+              <h2 className="card-title">Start a New Game</h2>
+
+              <div className="input">
+                <label htmlFor="gameName">Game Name</label>
+                <input
+                  id="gameName"
+                  type="text"
+                  placeholder="e.g., Catan Night"
+                  value={gameName}
+                  onChange={(e) => setGameName(e.target.value)}
+                />
+              </div>
+
+              <div className="toggle-row">
+                <span>Highest score wins</span>
+                <Switch checked={highestWins} onToggle={() => setHighestWins((v) => !v)} label="Highest score wins" />
+              </div>
+
+              <Button disabled={!gameName.trim()} onClick={onStart}>
+                Start New Game
+              </Button>
+            </Card>
+
+            <section>
+              <div className="section-header">
+                <h2>Previous Games</h2>
+              </div>
+
+              {previousGames.length === 0 ? (
+                <div className="card">
+                  <p style={{ color: "var(--muted)", textAlign: "center" }}>No games yet. Start one above.</p>
+                </div>
+              ) : (
+                <div className="game-list">
+                  {previousGames.map((game) => (
+                    <a href="#" className="game-card" key={game.id} onClick={(e) => e.preventDefault()}>
+                      <div className="game-card-top">
+                        <h3>{game.name}</h3>
+                        <span>{game.players}</span>
+                      </div>
+                      <div className="game-card-actions">
+                        <PillButton onClick={() => setGameName(game.name)}>Play Again</PillButton>
+                        <PillButton danger onClick={() => onDeletePrev(game.id)}>
+                          Delete
+                        </PillButton>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        );
+      };
+
+      const GamePage = ({
+        currentGame,
+        highestWins,
+        players,
+        setPlayers,
+        round,
+        setRound,
+        sortMode,
+        setSortMode,
+        onBack,
+        onEndGame,
+        onAddPlayers,
+        onEditPlayer,
+        onDeletePlayer,
+      }) => {
+        const sortedPlayers = useMemo(() => {
+          const copy = [...players];
+          if (sortMode === "custom") return copy.sort((a, b) => a.order - b.order);
+          if (sortMode === "high") return copy.sort((a, b) => b.score - a.score);
+          if (sortMode === "low") return copy.sort((a, b) => a.score - b.score);
+          return copy;
+        }, [players, sortMode]);
+
+        const bumpScore = (id, delta) => {
+          setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, score: p.score + delta } : p)));
+        };
+
+        return (
+          <div className="page game-screen">
+            <div className="game-header">
+              <button className="icon-button" type="button" onClick={onBack} aria-label="Back">
+                ←
+              </button>
+              <h1>{currentGame}</h1>
+              <button className="ghost-button" type="button" onClick={onEndGame}>
+                End Game
+              </button>
+            </div>
+
+            <div className="subheader-row">
+              <div className="round-controls">
+                <div className="round-pill">
+                  <span>Round:</span>
+                  <span>{round}</span>
+                </div>
+                <div className="round-stepper">
+                  <button className="stepper-btn" type="button" onClick={() => setRound((r) => Math.max(1, r - 1))}>
+                    −
+                  </button>
+                  <button className="stepper-btn" type="button" onClick={() => setRound((r) => r + 1)}>
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="sort-control">
+                <span>Sort by</span>
+                <select className="select" value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+                  <option value="custom">Custom</option>
+                  <option value="high">Highest points</option>
+                  <option value="low">Lowest points</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="players-card">
+              {sortedPlayers.length === 0 ? (
+                <p className="small-muted" style={{ textAlign: "center" }}>
+                  No players yet. Add players to start scoring.
+                </p>
+              ) : (
+                sortedPlayers.map((p) => (
+                  <div className="player-row" key={p.id}>
+                    <div className="player-left">
+                      <div className="player-chip" style={{ background: p.color }} aria-hidden="true" />
+                      <div className="player-name">{p.name}</div>
+                    </div>
+
+                    <div className="row-actions">
+                      <div className="score-right">{p.score}</div>
+
+                      <PillButton onClick={() => bumpScore(p.id, highestWins ? 1 : -1)}>{highestWins ? "+1" : "-1"}</PillButton>
+                      <PillButton onClick={() => bumpScore(p.id, highestWins ? -1 : 1)}>{highestWins ? "-1" : "+1"}</PillButton>
+
+                      <PillButton onClick={() => onEditPlayer(p)}>Modify</PillButton>
+                      <PillButton danger onClick={() => onDeletePlayer(p.id)}>
+                        Delete
+                      </PillButton>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <button className="accent-button add-players" type="button" onClick={onAddPlayers}>
+              Add Players
+            </button>
+          </div>
+        );
+      };
+
+      const AddPlayerPage = ({
+        players,
+        onBack,
+        savedPlayers,
+        onAddFromSaved,
+        onAddOrUpdateCustom,
+        editingPlayer,
+        onCancelEdit,
+      }) => {
+        const [addMode, setAddMode] = useState("saved");
+
+        const [selectedSavedId, setSelectedSavedId] = useState(savedPlayers[0]?.id ?? "");
+
+        const [name, setName] = useState(editingPlayer?.name ?? "");
+        const [color, setColor] = useState(editingPlayer?.color ?? "#a78bfa");
+        const [image, setImage] = useState(editingPlayer?.image ?? "");
+
+        useEffect(() => {
+          if (editingPlayer) {
+            setAddMode("new");
+            setName(editingPlayer.name ?? "");
+            setColor(editingPlayer.color ?? "#a78bfa");
+            setImage(editingPlayer.image ?? "");
+          }
+        }, [editingPlayer]);
+
+        const handleImageUpload = (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => setImage(String(reader.result || ""));
+          reader.readAsDataURL(file);
+        };
+
+        const doneSaved = () => {
+          const chosen = savedPlayers.find((p) => p.id === selectedSavedId);
+          if (!chosen) return;
+          onAddFromSaved(chosen);
+        };
+
+        const doneNew = () => {
+          const trimmed = name.trim();
+          if (!trimmed) return;
+          onAddOrUpdateCustom({ name: trimmed, color, image });
+          setName("");
+          setColor("#a78bfa");
+          setImage("");
+        };
+
+        return (
+          <div className="page game-screen">
+            <div className="game-header">
+              <button className="icon-button" type="button" onClick={onBack} aria-label="Back">
+                ←
+              </button>
+              <h1>{editingPlayer ? "Edit Player" : "Add Player"}</h1>
+              {editingPlayer ? (
+                <button className="ghost-button" type="button" onClick={onCancelEdit}>
+                  Cancel
+                </button>
+              ) : (
+                <button className="ghost-button" type="button" onClick={onBack}>
+                  Done
+                </button>
+              )}
+            </div>
+
+            <div className="segmented">
+              <button type="button" data-active={addMode === "saved"} onClick={() => setAddMode("saved")} disabled={!!editingPlayer}>
+                Select from Saved Players
+              </button>
+              <button type="button" data-active={addMode === "new"} onClick={() => setAddMode("new")}
+              >
+                {editingPlayer ? "Edit Player" : "Create a New Player"}
+              </button>
+            </div>
+
+            <div className="card">
+              {addMode === "saved" && !editingPlayer ? (
+                <div className="form-grid">
+                  <div className="field-row">
+                    <label htmlFor="savedPlayer">Saved Players</label>
+                    <select
+                      id="savedPlayer"
+                      className="saved-select"
+                      value={selectedSavedId}
+                      onChange={(e) => setSelectedSavedId(e.target.value)}
+                    >
+                      {savedPlayers.map((p) => (
+                        <option value={p.id} key={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="small-muted">Pick a saved player and press Add.</p>
+                  </div>
+
+                  <Button disabled={!selectedSavedId} onClick={doneSaved}>
+                    Add
+                  </Button>
+                </div>
+              ) : (
+                <div className="form-grid">
+                  <div className="field-row">
+                    <label>Player Card Image</label>
+                    <div className="image-picker">
+                      <div className="avatar" aria-label="Player preview">
+                        {image ? <img src={image} alt="Player" /> : <span>{toInitials(name)}</span>}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                        <input type="file" accept="image/*" onChange={handleImageUpload} />
+                        <span className="small-muted">Optional. Used on the player card.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="field-row">
+                    <label htmlFor="playerName">Name</label>
+                    <input
+                      id="playerName"
+                      type="text"
+                      placeholder="e.g., Player 3"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="field-row">
+                    <label htmlFor="playerColor">Color</label>
+                    <input
+                      id="playerColor"
+                      className="color-input"
+                      type="color"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      aria-label="Choose player color"
+                    />
+                  </div>
+
+                  <Button disabled={!name.trim()} onClick={doneNew}>
+                    {editingPlayer ? "Save" : "Add"}
+                  </Button>
+                </div>
+              )}
+
+              <div className="divider" />
+
+              <div className="small-muted" style={{ fontWeight: 800, color: "var(--text)" }}>
+                Current players in the game
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {players.map((p) => (
+                  <div className="player-row" key={p.id}>
+                    <div className="player-left">
+                      <div className="player-chip" style={{ background: p.color }} aria-hidden="true" />
+                      <div className="player-name">{p.name}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // ---------- App ----------
+      const App = () => {
+        const STORAGE_PREV = "gameTracker.previousGames";
+        const STORAGE_DARK = "gameTracker.darkMode";
+
+        const [previousGames, setPreviousGames] = useState(() => storage.get(STORAGE_PREV, []));
+        const [darkMode, setDarkMode] = useState(() => storage.get(STORAGE_DARK, false));
+
+        const [gameName, setGameName] = useState("");
+        const [highestWins, setHighestWins] = useState(true);
+
+        const [screen, setScreen] = useState("home"); // home | game | addPlayer
+        const [currentGame, setCurrentGame] = useState("");
+
+        const [round, setRound] = useState(1);
+        const [sortMode, setSortMode] = useState("custom");
+        const [players, setPlayers] = useState([]);
+
+        const [editingPlayerId, setEditingPlayerId] = useState(null);
+
+        const savedPlayers = useMemo(
+          () => [
+            { id: "s1", name: "Kayla", color: "#a78bfa", image: "" },
+            { id: "s2", name: "Jordan", color: "#8b5cf6", image: "" },
+          ],
+          []
+        );
+
+        useEffect(() => {
+          document.body.classList.toggle("dark", darkMode);
+          storage.set(STORAGE_DARK, darkMode);
+        }, [darkMode]);
+
+        useEffect(() => {
+          storage.set(STORAGE_PREV, previousGames);
+        }, [previousGames]);
+
+        const resetAll = () => {
+          const ok = window.confirm("Reset the app? This clears previous games.");
+          if (!ok) return;
+          setPreviousGames([]);
+          setGameName("");
+          setCurrentGame("");
+          setPlayers([]);
+          setRound(1);
+          setSortMode("custom");
+          setScreen("home");
+        };
+
+        const startNewGame = () => {
+          const name = gameName.trim();
+          if (!name) return;
+          setCurrentGame(name);
+          setPlayers([]);
+          setRound(1);
+          setSortMode("custom");
+          setEditingPlayerId(null);
+          setScreen("game");
+        };
+
+        const endGame = () => {
+          const playerCount = players.length;
+          const summary = `${playerCount} Player${playerCount === 1 ? "" : "s"}`;
+
+          const ended = {
+            id: uid(),
+            name: currentGame,
+            players: summary,
+            endedAt: new Date().toISOString(),
+          };
+
+          setPreviousGames((prev) => [ended, ...prev]);
+          setCurrentGame("");
+          setPlayers([]);
+          setScreen("home");
+        };
+
+        const deletePreviousGame = (id) => {
+          const confirmed = window.confirm("Delete this game? This cannot be undone.");
+          if (!confirmed) return;
+          setPreviousGames((prev) => prev.filter((g) => g.id !== id));
+        };
+
+        const addPlayerToGame = ({ name, color, image }) => {
+          setPlayers((prev) => {
+            const nextOrder = prev.length ? Math.max(...prev.map((p) => p.order)) + 1 : 1;
+            return [...prev, { id: uid(), name, color, image: image || "", score: 0, order: nextOrder }];
+          });
+        };
+
+        const editingPlayer = useMemo(() => players.find((p) => p.id === editingPlayerId) || null, [players, editingPlayerId]);
+
+        const addOrUpdateCustom = ({ name, color, image }) => {
+          if (editingPlayerId) {
+            setPlayers((prev) => prev.map((p) => (p.id === editingPlayerId ? { ...p, name, color, image: image || "" } : p)));
+            setEditingPlayerId(null);
+            return;
+          }
+          addPlayerToGame({ name, color, image });
+        };
+
+        const startEditPlayer = (player) => {
+          setEditingPlayerId(player.id);
+          setScreen("addPlayer");
+        };
+
+        const deletePlayerFromGame = (id) => {
+          const ok = window.confirm("Delete this player from the game?");
+          if (!ok) return;
+          setPlayers((prev) => prev.filter((p) => p.id !== id));
+          if (editingPlayerId === id) setEditingPlayerId(null);
+        };
+
+        // ---------- routing ----------
+        if (screen === "home") {
+          return (
+            <HomePage
+              gameName={gameName}
+              setGameName={setGameName}
+              highestWins={highestWins}
+              setHighestWins={setHighestWins}
+              previousGames={previousGames}
+              onStart={startNewGame}
+              onDeletePrev={deletePreviousGame}
+              darkMode={darkMode}
+              setDarkMode={setDarkMode}
+              onReset={resetAll}
+            />
+          );
+        }
+
+        if (screen === "addPlayer") {
+          return (
+            <AddPlayerPage
+              players={players}
+              savedPlayers={savedPlayers}
+              editingPlayer={editingPlayer}
+              onBack={() => {
+                setEditingPlayerId(null);
+                setScreen("game");
+              }}
+              onCancelEdit={() => {
+                setEditingPlayerId(null);
+                setScreen("game");
+              }}
+              onAddFromSaved={(p) => {
+                addPlayerToGame(p);
+                setScreen("game");
+              }}
+              onAddOrUpdateCustom={(p) => {
+                addOrUpdateCustom(p);
+                setScreen("game");
+              }}
+            />
+          );
+        }
+
+        // screen === "game"
+        return (
+          <GamePage
+            currentGame={currentGame}
+            highestWins={highestWins}
+            players={players}
+            setPlayers={setPlayers}
+            round={round}
+            setRound={setRound}
+            sortMode={sortMode}
+            setSortMode={setSortMode}
+            onBack={() => {
+              const ok = window.confirm("Leave this game? Your current scores will be lost unless you end the game.");
+              if (!ok) return;
+              setCurrentGame("");
+              setPlayers([]);
+              setScreen("home");
+            }}
+            onEndGame={endGame}
+            onAddPlayers={() => setScreen("addPlayer")}
+            onEditPlayer={startEditPlayer}
+            onDeletePlayer={deletePlayerFromGame}
+          />
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
