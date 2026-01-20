@@ -803,25 +803,50 @@ body.dark .player-row {
         <div className={`card ${className}`.trim()}>{children}</div>
       );
 
-      const previousGames = [
-        {
-          id: 1,
-          name: "Catan",
-          players: "4 Players",
-        },
-        {
-          id: 2,
-          name: "Poker Night",
-          players: "5 Players",
-        },
-        {
-          id: 3,
-          name: "Sushi Go",
-          players: "3 Players",
-        },
+      
       ];
 
       const HomePage = () => {
+        const STORAGE_KEY = "gameTracker.previousGames";
+
+				const [previousGames, setPreviousGames] = useState(() => {
+				  try {
+				    const raw = localStorage.getItem(STORAGE_KEY);
+				    return raw ? JSON.parse(raw) : [];
+				  } catch {
+				    return [];
+				}
+		});
+
+React.useEffect(() => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(previousGames));
+  } catch {
+    // ignore
+  }
+}, [previousGames]);
+const endGame = () => {
+  const name = currentGame.trim();
+  if (!name) {
+    setCurrentGame("");
+    return;
+  }
+
+  const playerCount = players.length;
+  const summary = `${playerCount} Player${playerCount === 1 ? "" : "s"}`;
+
+  const ended = {
+    id: Date.now(),
+    name,
+    players: summary,
+    endedAt: new Date().toISOString(),
+  };
+
+  setPreviousGames((prev) => [ended, ...prev]);
+  setCurrentGame("");
+  setGameName("");
+};
+
         const [gameName, setGameName] = useState("");
         const [highestWins, setHighestWins] = useState(true);
         const [menuOpen, setMenuOpen] = useState(false);
@@ -848,10 +873,21 @@ body.dark .player-row {
         const [newPlayerImage, setNewPlayerImage] = useState("");
 
 
-        const handleStart = () => {
-          console.log({ gameName, highestWins });
-          setCurrentGame(gameName.trim());
-        };
+				const handleStart = () => {
+ 			 		const name = gameName.trim();
+					if (!name) return;
+
+				  setRound(1);
+				  setSortMode("custom");
+				  setPlayers([
+				    { id: 1, name: "Player 1", color: "#a78bfa", score: 0, order: 1 },
+				    { id: 2, name: "Player 2", color: "#8b5cf6", score: 0, order: 2 },
+				  ]);
+				
+				  setMode("game");
+				  setCurrentGame(name);
+				};
+
         const toInitials = (name) =>
   (name || "P")
     .trim()
@@ -1038,9 +1074,10 @@ if (mode === "addPlayer") {
           ←
         </button>
         <h1>{currentGame}</h1>
-        <button className="ghost-button" type="button" onClick={() => setCurrentGame("")}>
-          End Game
-        </button>
+       <button className="ghost-button" type="button" onClick={endGame}>
+  End Game
+</button>
+
       </div>
 
       {/* Under header */}
@@ -1177,29 +1214,39 @@ if (mode === "addPlayer") {
               </Button>
             </Card>
 
-            <section>
-              <div className="section-header">
-                <h2>Previous Games</h2>
-              </div>
-              <div className="game-list">
-                {previousGames.map((game) => (
-                  <a href="#" className="game-card" key={game.id}>
-                    <div className="game-card-top">
-                      <h3>{game.name}</h3>
-                      <span>{game.players}</span>
-                    </div>
-                    <div className="game-card-actions">
-                      <button className="pill-button" type="button">
-                        Play Again
-                      </button>
-                      <button className="pill-button" type="button">
-                        View
-                      </button>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </section>
+           <section>
+  <div className="section-header">
+    <h2>Previous Games</h2>
+  </div>
+
+  {previousGames.length === 0 ? (
+    <div className="card">
+      <p style={{ color: "var(--muted)", textAlign: "center" }}>
+        No games yet. Start one above!
+      </p>
+    </div>
+  ) : (
+    <div className="game-list">
+      {previousGames.map((game) => (
+        <a href="#" className="game-card" key={game.id}>
+          <div className="game-card-top">
+            <h3>{game.name}</h3>
+            <span>{game.players}</span>
+          </div>
+          <div className="game-card-actions">
+            <button className="pill-button" type="button">
+              Play Again
+            </button>
+            <button className="pill-button" type="button">
+              View
+            </button>
+          </div>
+        </a>
+      ))}
+    </div>
+  )}
+</section>
+
           </div>
         );
       };
