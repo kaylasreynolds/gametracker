@@ -783,10 +783,10 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
-      const { useState } = React;
+      const { useState, useEffect } = React;
 
       const PRESET_COLORS = [
-        "#d55a6d", "#e2c94c", "#6a4e8d", "#a3c1a0", 
+        "#d55a6d", "#e2c94c", "#6a4e8d", "#a3c1a0",
         "#d77b4a", "#4e8e9d", "#7a9bc2", "#4b545e"
       ];
 
@@ -845,13 +845,14 @@
           { id: "s4", name: "Brandon", color: "#d77b4a" },
         ]);
 
+        // MULTI-SELECT state for saved players (default to first saved if present)
         const [selectedSavedIds, setSelectedSavedIds] = useState(
-           () => (savedPlayers.length ? [savedPlayers[0].id] : [])
+          () => (savedPlayers.length ? [savedPlayers[0].id] : [])
         );
         const [newPlayerName, setNewPlayerName] = useState("");
         const [newPlayerColor, setNewPlayerColor] = useState("#a78bfa");
 
-        React.useEffect(() => {
+        useEffect(() => {
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(previousGames));
           } catch {
@@ -859,7 +860,7 @@
           }
         }, [previousGames]);
 
-        React.useEffect(() => {
+        useEffect(() => {
           document.body.classList.toggle("dark", darkMode);
         }, [darkMode]);
 
@@ -913,13 +914,14 @@
           });
         };
 
+        // DONE: when adding saved players, add all selected saved players
         const handleDoneAddPlayer = () => {
           if (addMode === "saved") {
-          const chosen = savedPlayers.filter((p) => selectedSavedIds.includes(p.id));
-          chosen.forEach((p) => addPlayerToGame(p));
-          setMode("game");
-          return;
-        }
+            const chosen = savedPlayers.filter((p) => selectedSavedIds.includes(p.id));
+            chosen.forEach((p) => addPlayerToGame(p));
+            setMode("game");
+            return;
+          }
 
           const trimmed = newPlayerName.trim();
           if (!trimmed) return;
@@ -942,12 +944,14 @@
           setMode("game");
         };
 
+        // DONE: delete player immediately (no confirmation)
         const deletePlayerFromGame = (id) => {
           setPlayers((prev) => prev.filter((p) => p.id !== id));
         };
 
         if (currentGame) {
           const sortedPlayers = [...players].sort((a, b) => {
+            if (sortMode === "custom") return a.order - b.order;
             if (sortMode === "high") return b.score - a.score;
             if (sortMode === "low") return a.score - b.score;
             return 0;
@@ -955,7 +959,7 @@
 
           if (mode === "addPlayer") {
             return (
-              <div className="page game-screen">
+              <div className="page game-screen" style={{ maxWidth: 640 }}>
                 <div className="game-header">
                   <button className="icon-button" type="button" onClick={() => setMode("game")}>
                     ←
@@ -996,6 +1000,8 @@
                           onChange={(e) =>
                             setSelectedSavedIds(Array.from(e.target.selectedOptions, (o) => o.value))
                           }
+                          size={Math.min(6, savedPlayers.length || 1)}
+                          aria-label="Select saved players to add"
                         >
                           {savedPlayers.map((p) => (
                             <option value={p.id} key={p.id}>
@@ -1003,292 +1009,251 @@
                             </option>
                           ))}
                         </select>
-                        <p className="small-muted">Pick a saved player and press Done to add them to this game.</p>
+                        <div className="small-muted">Tip: use Ctrl/Cmd or Shift to select multiple</div>
+                      </div>
+
+                      <div className="row-actions">
+                        <button className="pill-button" type="button" onClick={() => setMode("game")}>
+                          Cancel
+                        </button>
+                        <button
+                          className="pill-button"
+                          type="button"
+                          onClick={handleDoneAddPlayer}
+                          disabled={selectedSavedIds.length === 0}
+                        >
+                          Add Selected
+                        </button>
                       </div>
                     </div>
                   ) : (
                     <div className="form-grid">
                       <div className="field-row">
-                        <label htmlFor="playerName">Name</label>
+                        <label htmlFor="newPlayerName">Player Name</label>
                         <input
-                          id="playerName"
+                          id="newPlayerName"
                           type="text"
-                          placeholder="e.g., Player 3"
                           value={newPlayerName}
                           onChange={(e) => setNewPlayerName(e.target.value)}
+                          placeholder="Enter player name"
                         />
                       </div>
 
                       <div className="field-row">
-                        <label>Color</label>
-                        <div className="color-grid">
-                          {PRESET_COLORS.map((color) => (
+                        <label>Player Color</label>
+                        <div className="color-grid" role="list">
+                          {PRESET_COLORS.map((c) => (
                             <button
-                              key={color}
+                              key={c}
                               type="button"
                               className="color-option"
-                              style={{ background: color }}
-                              data-selected={newPlayerColor === color}
-                              onClick={() => setNewPlayerColor(color)}
-                              aria-label={`Select color ${color}`}
+                              style={{ background: c }}
+                              data-selected={c === newPlayerColor}
+                              aria-label={`Select color ${c}`}
+                              onClick={() => setNewPlayerColor(c)}
                             />
                           ))}
                         </div>
                       </div>
+
+                      <div className="row-actions">
+                        <button className="pill-button" type="button" onClick={() => setMode("game")}>
+                          Cancel
+                        </button>
+                        <button
+                          className="pill-button"
+                          type="button"
+                          onClick={handleDoneAddPlayer}
+                          disabled={!newPlayerName.trim()}
+                        >
+                          Save
+                        </button>
+                      </div>
                     </div>
                   )}
-
-                  <Button
-                    onClick={handleDoneAddPlayer}
-                    disabled={addMode === "new" ? !newPlayerName.trim() : !selectedSavedId}
-                  >
-                    Done
-                  </Button>
-
-                  <div className="divider" />
-
-                  <div className="small-muted" style={{ fontWeight: 700, color: "var(--text)" }}>
-                    Current players in the game
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {players.map((p, idx) => (
-                      <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "12px", borderRadius: 16, border: "1px solid rgba(122, 122, 122, 0.18)" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                          <div
-                            className="player-chip"
-                            style={{ background: p.color }}
-                            aria-hidden="true"
-                          ></div>
-                          <div className="player-name">{p.name}</div>
-                        </div>
-
-                        <div className="row-actions">
-                          <span className="score-right">Player {idx + 1}</span>
-
-                          <button className="pill-button danger" type="button" onClick={() => deletePlayerFromGame(p.id)}>
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             );
           }
 
+          // Main game screen
           return (
-            <div className="page game-screen">
+            <div className="page game-screen" style={{ maxWidth: 640 }}>
               <div className="game-header">
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <button className="icon-button" type="button" onClick={() => setCurrentGame("")} aria-label="Back">
-                    ←
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button className="menu-button" type="button" onClick={() => setMenuOpen((s) => !s)}>
+                    <span className="menu-icon" aria-hidden="true">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </span>
                   </button>
-
-                  <button
-                    className="icon-button small"
-                    type="button"
-                    onClick={() => setMode("addPlayer")}
-                    aria-label="Add player"
-                  >
-                    +
-                  </button>
+                  {menuOpen && (
+                    <div className="menu-panel" role="menu" aria-label="App menu">
+                      <div className="menu-row">
+                        <span>Dark Mode</span>
+                        <Switch checked={darkMode} onToggle={() => setDarkMode((d) => !d)} label="Toggle dark mode" />
+                      </div>
+                      <button className="menu-item" type="button" onClick={() => { setMenuOpen(false); alert('Settings placeholder'); }}>
+                        Settings
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                <h1>{currentGame}</h1>
+                <h1 style={{ margin: "0 auto" }}>{currentGame}</h1>
 
-                <button className="ghost-button" type="button" onClick={endGame}>
-                  End Game
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button className="icon-button" type="button" onClick={() => setMode("addPlayer")}>+</button>
+                  <button className="ghost-button" type="button" onClick={endGame}>End</button>
+                </div>
               </div>
 
               <div className="subheader-row">
                 <div className="round-controls">
-                  <div className="round-pill">
-                    <span>Round:</span>
-                    <span>{round}</span>
-                  </div>
+                  <div className="round-pill">Round {round}</div>
                   <div className="round-stepper">
-                    <button
-                      className="stepper-btn"
-                      type="button"
-                      onClick={() => setRound((r) => Math.max(1, r - 1))}
-                      aria-label="Previous round"
-                    >
-                      −
-                    </button>
-                    <button
-                      className="stepper-btn"
-                      type="button"
-                      onClick={() => setRound((r) => r + 1)}
-                      aria-label="Next round"
-                    >
-                      +
-                    </button>
+                    <button className="stepper-btn" type="button" onClick={() => setRound((r) => Math.max(1, r - 1))}>−</button>
+                    <button className="stepper-btn" type="button" onClick={() => setRound((r) => r + 1)}>+</button>
                   </div>
                 </div>
 
                 <div className="sort-control">
-                  <span>Sort by</span>
-                  <select
-                    className="select"
-                    value={sortMode}
-                    onChange={(e) => setSortMode(e.target.value)}
-                    aria-label="Sort players"
-                  >
-                    <option value="high">Highest points</option>
-                    <option value="low">Lowest points</option>
+                  <span className="small-muted">Sort</span>
+                  <select className="select" value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+                    <option value="custom">Custom</option>
+                    <option value="high">High score</option>
+                    <option value="low">Low score</option>
                   </select>
                 </div>
               </div>
 
               <div className="players-card">
-                {sortedPlayers.map((p) => (
-                  <div className="player-row" key={p.id}>
-                    <div className="player-left">
-                      <div className="player-chip" style={{ background: p.color }} aria-hidden="true"></div>
-                      <div className="player-name">{p.name}</div>
-                    </div>
+                {sortedPlayers.length === 0 ? (
+                  <div className="small-muted">No players yet — add some.</div>
+                ) : (
+                  sortedPlayers.map((p) => (
+                    <div className="player-row" key={p.id}>
+                      <div className="player-left">
+                        <div className="player-chip" style={{ background: p.color }}>
+                          <div style={{ textAlign: "center", lineHeight: "38px", color: "#fff", fontWeight: 700 }}>
+                            {toInitials(p.name)}
+                          </div>
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div className="player-name">{p.name}</div>
+                          <div className="small-muted">Score: {p.score}</div>
+                        </div>
+                      </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                      <div className="score-right">Score: {p.score}</div>
-
-                      <button
-                        className="pill-button"
-                        type="button"
-                        onClick={() => alert('Points functionality coming soon!')}
-                      >
-                        Points
-                      </button>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <button className="pill-button" type="button" onClick={() => setPlayers((prev) => prev.map(pp => pp.id === p.id ? {...pp, score: pp.score - 1} : pp))}>−</button>
+                        <div className="score-right">{p.score}</div>
+                        <button className="pill-button" type="button" onClick={() => setPlayers((prev) => prev.map(pp => pp.id === p.id ? {...pp, score: pp.score + 1} : pp))}>+</button>
+                        <button className="pill-button danger" type="button" onClick={() => deletePlayerFromGame(p.id)}>Delete</button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
-
-              
             </div>
           );
         }
 
+        // Home page (no current game)
         return (
-          <div className="page">
-            <div className="menu">
-              <button
-                className="menu-button"
-                type="button"
-                aria-haspopup="true"
-                aria-expanded={menuOpen}
-                aria-controls="menu-panel"
-                onClick={() => setMenuOpen((value) => !value)}
-              >
-                <span className="menu-icon" aria-hidden="true">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </span>
-                <span className="sr-only">Open menu</span>
-              </button>
-              {menuOpen && (
-                <div className="menu-panel" id="menu-panel" role="menu">
-                  <div className="menu-row" role="none">
-                    <span>Dark mode</span>
-                    <Switch
-                      checked={darkMode}
-                      onToggle={() => setDarkMode((value) => !value)}
-                      label="Toggle dark mode"
-                    />
-                  </div>
-                  <button className="menu-item" type="button" role="menuitem">
-                    Manage Players
-                  </button>
-                  <button className="menu-item" type="button" role="menuitem">
-                    Reset
-                  </button>
-                </div>
-              )}
-            </div>
+          <div className="page" style={{ maxWidth: 640 }}>
             <header>
-              <h1>Games</h1>
-              <p>Track your board &amp; card games</p>
+              <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                <div className="menu" style={{ position: "relative" }}>
+                  <button className="menu-button" type="button" onClick={() => setMenuOpen((s) => !s)}>
+                    <span className="menu-icon" aria-hidden="true">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </span>
+                  </button>
+                  {menuOpen && (
+                    <div className="menu-panel" role="menu" aria-label="App menu">
+                      <div className="menu-row">
+                        <span>Dark Mode</span>
+                        <Switch checked={darkMode} onToggle={() => setDarkMode((d) => !d)} label="Toggle dark mode" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <h1 style={{ margin: "0 auto" }}>Game Tracker</h1>
+
+                <div style={{ width: 44 }} />
+              </div>
+
+              <p>Quickly track scores and rounds for casual games.</p>
             </header>
 
             <Card>
-              <h2 className="card-title">Start a New Game!</h2>
+              <div className="card-title">Start a Game</div>
+
               <div className="input">
-                <label htmlFor="gameName">Game Name</label>
+                <label htmlFor="gameName">Game name</label>
                 <input
                   id="gameName"
                   type="text"
-                  placeholder="e.g., Catan Night"
                   value={gameName}
-                  onChange={(event) => setGameName(event.target.value)}
+                  onChange={(e) => setGameName(e.target.value)}
+                  placeholder="e.g. Codenames"
                 />
               </div>
+
               <div className="toggle-row">
-                <span>Highest score wins 🏆</span>
-                <Switch
-                  checked={highestWins}
-                  onToggle={() => setHighestWins((value) => !value)}
-                  label="Highest score wins"
-                />
+                <span>Highest score wins</span>
+                <Switch checked={highestWins} onToggle={() => setHighestWins((s) => !s)} label="Toggle highest wins" />
               </div>
-              <Button disabled={!gameName.trim()} onClick={handleStart}>
-                Start New Game
-              </Button>
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <Button onClick={handleStart} disabled={!gameName.trim()}>
+                  Start
+                </Button>
+                <button className="ghost-button" type="button" onClick={() => setMode("addPlayer")}>Add Players</button>
+              </div>
             </Card>
 
             <section>
               <div className="section-header">
-                <h2>Previous Games</h2>
+                <h2 className="small-muted">Previous games</h2>
               </div>
 
-              {previousGames.length === 0 ? (
-                <div className="card">
-                  <p style={{ color: "var(--muted)", textAlign: "center" }}>
-                    No games yet. Start one above!
-                  </p>
-                </div>
-              ) : (
-                <div className="game-list">
-                  {previousGames.map((game) => (
-                    <a href="#" className="game-card" key={game.id}>
+              <div className="game-list">
+                {previousGames.length === 0 ? (
+                  <div className="small-muted">No previous games</div>
+                ) : (
+                  previousGames.map((g) => (
+                    <div className="game-card" key={g.id}>
                       <div className="game-card-top">
-                        <h3>{game.name}</h3>
-                        <span>{game.players}</span>
-                      </div>
-                      <div className="game-card-actions">
-                        <button className="pill-button" type="button">
-                          Play Again
-                        </button>
+                        <div>
+                          <div style={{ fontWeight: 700 }}>{g.name}</div>
+                          <div className="small-muted">{g.players} — {new Date(g.endedAt).toLocaleString()}</div>
+                        </div>
 
-                        <button className="pill-button" type="button">
-                          View
-                        </button>
-
-                        <button
-                          className="pill-button"
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            deletePreviousGame(game.id);
-                          }}
-                          aria-label={`Delete ${game.name}`}
-                        >
-                          Delete
-                        </button>
+                        <div className="game-card-actions">
+                          <button className="pill-button" type="button" onClick={() => { setGameName(g.name); setCurrentGame(g.name); }}>
+                            Play again
+                          </button>
+                          <button className="pill-button danger" type="button" onClick={() => deletePreviousGame(g.id)}>
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                    </a>
-                  ))}
-                </div>
-              )}
+                    </div>
+                  ))
+                )}
+              </div>
             </section>
           </div>
         );
       };
 
-      const root = ReactDOM.createRoot(document.getElementById("root"));
-      root.render(<HomePage />);
+      ReactDOM.createRoot(document.getElementById("root")).render(<HomePage />);
     </script>
   </body>
 </html>
