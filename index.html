@@ -946,7 +946,6 @@
 
         if (currentGame) {
           const sortedPlayers = [...players].sort((a, b) => {
-            if (sortMode === "custom") return a.order - b.order;
             if (sortMode === "high") return b.score - a.score;
             if (sortMode === "low") return a.score - b.score;
             return 0;
