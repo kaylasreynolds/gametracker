@@ -841,18 +841,7 @@ React.useEffect(() => {
     // ignore
   }
 }, [previousGames]);
-const endGame = () => {
-  const name = currentGame.trim();
-  if (!name) {
-    setCurrentGame("");
-    return;
-  }
-  const deletePreviousGame = (id) => {
-  const confirmed = window.confirm("Delete this game? This cannot be undone.");
-  if (!confirmed) return;
 
-  setPreviousGames((prev) => prev.filter((g) => g.id !== id));
-};
 
 
   const playerCount = players.length;
@@ -940,6 +929,12 @@ const handleDoneAddPlayer = () => {
 
   const trimmed = newPlayerName.trim();
   if (!trimmed) return;
+const deletePreviousGame = (id) => {
+  const confirmed = window.confirm("Delete this game? This cannot be undone.");
+  if (!confirmed) return;
+
+  setPreviousGames((prev) => prev.filter((g) => g.id !== id));
+};
 
   // If editing, update existing player
   if (editingPlayerId != null) {
@@ -965,9 +960,6 @@ const handleDoneAddPlayer = () => {
 };
 
 const [editingPlayerId, setEditingPlayerId] = useState(null);
-const [editName, setEditName] = useState("");
-const [editColor, setEditColor] = useState("#a78bfa");
-const [editImage, setEditImage] = useState("");
 const startEditPlayer = (player) => {
   setAddMode("new");           // reuse the "Create New Player" form as the edit form
   setMode("addPlayer");
@@ -1114,28 +1106,34 @@ if (mode === "addPlayer") {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {players.map((p, idx) => (
-  <div className="player-row" key={p.id}>
-    <div className="player-left">
-      <div className="player-chip" style={{ background: p.color }} aria-hidden="true"></div>
-      <div className="player-name">{p.name || `Player ${idx + 1}`}</div>
-    </div>
-
-    <div className="row-actions">
-      <button className="pill-button" type="button" onClick={() => startEditPlayer(p)}>
-        Modify
-      </button>
-      <button className="pill-button danger" type="button" onClick={() => deletePlayerFromGame(p.id)}>
-        Delete
-      </button>
-    </div>
-              <div className="score-right">Player {idx + 1}</div>
-            </div>
-          ))}
-        </div>
+<div className="players-card">
+  {players.map((p) => (
+    <div className="player-row" key={p.id}>
+      <div className="player-left">
+        <div
+          className="player-chip"
+          style={{ background: p.color }}
+          aria-hidden="true"
+        ></div>
+        <div className="player-name">{p.name}</div>
       </div>
+
+<div className="row-actions">
+  <span className="score-right">Player {idx + 1}</span>
+
+  <button className="pill-button" type="button" onClick={() => startEditPlayer(p)}>
+    Modify
+  </button>
+
+  <button className="pill-button danger" type="button" onClick={() => deletePlayerFromGame(p.id)}>
+    Delete
+  </button>
+</div>
+
     </div>
-  );
-}
+  ))}
+</div>
+
 
   return (
     <div className="page game-screen">
