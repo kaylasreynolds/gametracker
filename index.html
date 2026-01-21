@@ -1023,6 +1023,7 @@
         const [pointsPlayerId, setPointsPlayerId] = useState(null);
         const [pointsValue, setPointsValue] = useState("");
         const [endSnapshot, setEndSnapshot] = useState(null);
+        const [playersWhoScoredThisRound, setPlayersWhoScoredThisRound] = useState(new Set());
 
 
         const [savedPlayers] = useState([
@@ -1075,9 +1076,8 @@
           setPointsValue("");
           setEditingPlayerId(null);
           setAddMode("saved");
+          setPlayersWhoScoredThisRound(new Set());
         };
-
-        // goHome + winner helpers defined above.
 
         const openPoints = (playerId) => {
           setPointsPlayerId(playerId);
@@ -1123,6 +1123,23 @@
           setPlayers((prev) =>
             prev.map((p) => (p.id === pointsPlayerId ? { ...p, score: (p.score ?? 0) + parsed } : p))
           );
+          
+          // Track that this player has scored this round
+          if (!viewOnly) {
+            setPlayersWhoScoredThisRound((prevSet) => {
+              const newSet = new Set(prevSet);
+              newSet.add(pointsPlayerId);
+              
+              // Check if all players have now scored
+              if (newSet.size === players.length) {
+                setRound((r) => r + 1);
+                return new Set(); // Reset for next round
+              }
+              
+              return newSet;
+            });
+          }
+          
           setMode("game");
           setPointsPlayerId(null);
           setPointsValue("");
@@ -1138,6 +1155,7 @@
           setMode("game");
           setViewOnly(false);
           setCurrentGame(name);
+          setPlayersWhoScoredThisRound(new Set());
         };
 
         const endGame = () => {
@@ -1190,6 +1208,7 @@
           setViewOnly(true);
           setHighestWins(typeof found.highestWins === "boolean" ? found.highestWins : true);
           setCurrentGame(found.name || "Game");
+          setPlayersWhoScoredThisRound(new Set());
         };
 
         const deletePreviousGame = (id) => {
@@ -1548,7 +1567,10 @@ if (mode === "addPlayer") {
                     <button
                       className="stepper-btn"
                       type="button"
-                      onClick={() => setRound((r) => Math.max(1, r - 1))}
+                      onClick={() => {
+                        setRound((r) => Math.max(1, r - 1));
+                        setPlayersWhoScoredThisRound(new Set());
+                      }}
                       aria-label="Previous round"
                     >
                       −
@@ -1556,7 +1578,10 @@ if (mode === "addPlayer") {
                     <button
                       className="stepper-btn"
                       type="button"
-                      onClick={() => setRound((r) => r + 1)}
+                      onClick={() => {
+                        setRound((r) => r + 1);
+                        setPlayersWhoScoredThisRound(new Set());
+                      }}
                       aria-label="Next round"
                     >
                       +
