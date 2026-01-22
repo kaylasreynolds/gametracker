@@ -9,6 +9,7 @@
         --accent-strong: #8b5cf6;
         --shadow: 0 10px 30px rgba(42, 42, 42, 0.08);
         --shadow-hover: 0 14px 40px rgba(42, 42, 42, 0.12);
+		--card-border: rgba(122, 122, 122, 0.18);
       }
 
       body.dark {
@@ -22,6 +23,7 @@
         --accent-strong: #c4b5fd;
         --shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
         --shadow-hover: 0 18px 36px rgba(0, 0, 0, 0.4);
+		--card-border: rgba(255, 255, 255, 0.18);
       }
 
       * {
@@ -941,4 +943,5 @@
       }
       .end-circle {
         width: min(160px, 44vw);
-    
+	  }
+	}
